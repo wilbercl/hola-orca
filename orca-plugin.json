@@ -1,0 +1,32 @@
+{
+  "manifestVersion": 1,
+  "id": "hola-orca",
+  "publisher": "wilber",
+  "name": "Hola Orca",
+  "version": "0.1.0",
+  "description": "Plugin de prueba: panel, comando, atajo, almacenamiento y eventos.",
+  "engines": { "orca": ">=1.4.0" },
+  "pluginApi": 1,
+  "main": "worker.mjs",
+  "contributes": {
+    "panels": [
+      { "id": "hola-panel", "title": "Hola Orca", "icon": "rocket", "entry": "panel.html" }
+    ],
+    "commands": [
+      { "id": "saludar", "title": "Hola Orca: Saludar", "context": "global" }
+    ],
+    "keybindings": [
+      { "command": "saludar", "key": "Mod+Alt+H", "when": "global" }
+    ],
+    "events": [
+      { "on": "worktree.created" }
+    ]
+  },
+  "capabilities": [
+    { "kind": "workspace:read" },
+    { "kind": "notifications:show" },
+    { "kind": "terminal:send" },
+    { "kind": "storage" },
+    { "kind": "events:subscribe" }
+  ]
+}

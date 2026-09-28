@@ -1,0 +1,71 @@
+<!-- Solo el contenido: Orca antepone su propio shell (CSP, tokens de diseño, ping/pong).
+     Sin acceso a red: todo inline. -->
+<style>
+  .wrap { padding: 12px; font-family: system-ui, sans-serif; color: var(--foreground); }
+  h2 { font-size: 14px; margin: 0 0 8px; }
+  p { color: var(--muted-foreground); font-size: 12px; margin: 0 0 12px; }
+  button {
+    display: block; width: 100%; margin-bottom: 8px; padding: 8px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--secondary); color: var(--secondary-foreground); cursor: pointer;
+  }
+  button:hover { background: var(--accent); color: var(--accent-foreground); }
+  pre {
+    background: var(--muted); color: var(--foreground); padding: 8px;
+    border-radius: var(--radius); font-size: 11px; white-space: pre-wrap; word-break: break-all;
+  }
+</style>
+
+<div class="wrap">
+  <h2>Hola Orca 🐋</h2>
+  <p>Panel de prueba. Cada botón llama a la API de Orca a través del puente postMessage.</p>
+  <button id="btn-ctx">Leer worktree actual</button>
+  <button id="btn-notif">Mostrar notificación</button>
+  <button id="btn-term">Escribir en el terminal</button>
+  <pre id="out">Listo.</pre>
+</div>
+
+<script>
+  const out = document.getElementById('out')
+  const pending = new Map()
+  let seq = 0
+
+  // Respuestas del host: { type: 'orca-panel-action-result', requestId, ok, value?, errorCode?, error? }
+  window.addEventListener('message', (e) => {
+    const d = e.data
+    if (!d || d.type !== 'orca-panel-action-result') return
+    const p = pending.get(d.requestId)
+    if (!p) return
+    pending.delete(d.requestId)
+    d.ok ? p.resolve(d.value) : p.reject(new Error(`${d.errorCode}: ${d.error}`))
+  })
+
+  function call(action, params) {
+    const requestId = `req-${++seq}`
+    return new Promise((resolve, reject) => {
+      pending.set(requestId, { resolve, reject })
+      window.parent.postMessage({ type: 'orca-panel-action', requestId, action, params }, '*')
+    })
+  }
+
+  const show = (x) => { out.textContent = typeof x === 'string' ? x : JSON.stringify(x, null, 2) }
+
+  document.getElementById('btn-ctx').onclick = () =>
+    call('workspace.readContext', {}).then(show).catch((e) => show('Error: ' + e.message))
+
+  document.getElementById('btn-notif').onclick = () =>
+    call('notifications.show', { title: 'Hola Orca', body: 'Notificación desde el panel' })
+      .then(show).catch((e) => show('Error: ' + e.message))
+
+  // La API no escribe en "el terminal activo": hay que indicar uno concreto.
+  document.getElementById('btn-term').onclick = async () => {
+    try {
+      const ctx = await call('workspace.readContext', {})
+      const t = ctx && ctx.terminals[0]
+      if (!t) return show('No hay terminales en el worktree enfocado.')
+      // enter:false → el texto queda escrito sin ejecutarse; pulsa Enter tú.
+      const r = await call('terminal.sendText', { terminalId: t.id, text: 'echo "Hola desde el plugin"', enter: false })
+      show(r)
+    } catch (e) { show('Error: ' + e.message) }
+  }
+</script>
