@@ -28,7 +28,7 @@ Sirve como ejemplo mínimo de todo lo que puede hacer un plugin de Orca: un pane
 2. Elige la pestaña **Git URL** y pega la URL con el tag de la versión:
 
    ```
-   https://github.com/TU_USUARIO/hola-orca.git#v0.1.0
+   https://github.com/wilbercl/hola-orca.git#v0.1.0
    ```
 
 3. Revisa y acepta los permisos que pide el plugin.
@@ -38,7 +38,7 @@ La instalación queda fijada a ese commit y **no se actualiza sola**. Para actua
 ### Opción B: en modo desarrollo (se recarga al editar)
 
 ```bash
-git clone https://github.com/TU_USUARIO/hola-orca.git
+git clone https://github.com/wilbercl/hola-orca.git
 ```
 
 En **Settings → Plugins**, añade la carpeta clonada como ruta de desarrollo. Orca vigila los archivos y recarga el plugin cada vez que los editas o haces `git pull`, sin reiniciar.
